@@ -1,29 +1,42 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Calendar, { CalendarProps } from "react-calendar";
 import "./Calendar.css";
 import { get } from "../../utilities";
 import { AiTwotoneFrown } from "react-icons/ai";
-
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
+import { isSameDay } from "date-fns";
 
 const CalendarPage: React.FC = () => {
-  const [date, setDate] = useState<Date>(new Date()); // current date
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [serverDate, setServerDate] = useState<Date>(new Date()); // current server date
   const [winnerImage, setWinnerImage] = useState<string | undefined>(undefined);
   const [userImage, setUserImage] = useState<string | undefined>(undefined);
   const [prompt, setPrompt] = useState<string | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined); // stores clicked data
+
+  useEffect(() => {
+    const fetchServerTime = async () => {
+      const response = await fetch("https://worldtimeapi.org/api/timezone/Etc/UTC");
+      const data = await response.json();
+      const utcDate = new Date(data.utc_datetime);
+
+      setServerDate(utcDate);
+    };
+
+    fetchServerTime();
+  }, []);
 
   const onChange: CalendarProps["onChange"] = (newDate, event) => {
     if (newDate instanceof Date) {
-      setDate(newDate);
+      const utcDate = fromZonedTime(newDate, "America/New_York");
+      setSelectedDate(utcDate);
     } else {
       console.error("Invalid date value:", newDate);
     }
   };
 
   const onDateClick: CalendarProps["onClickDay"] = (value, event) => {
-    setSelectedDate(value);
-
+    value = fromZonedTime(value, "America/New_York");
     get("/api/get-winner", { date: value })
       .then((info) => {
         setWinnerImage(info.image.signedUrl);
@@ -47,20 +60,48 @@ const CalendarPage: React.FC = () => {
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setSelectedDate(undefined);
   };
 
   return (
     <div className="calendar-container">
       <h1>Past Images</h1>
-      <Calendar onChange={onChange} value={date} onClickDay={onDateClick} />
-      <p>Selected Date: {date.toDateString()}</p>
+      <Calendar
+        onChange={onChange}
+        value={toZonedTime(selectedDate, "America/New_York")}
+        onClickDay={onDateClick}
+        tileClassName={({ date, view }) => {
+          if (
+            view === "month" &&
+            serverDate &&
+            isSameDay(date, toZonedTime(serverDate, "America/New_York"))
+          ) {
+            // console.log("CHEEZBUGGA");
+            // console.log(
+            //   date,
+            //   toZonedTime(date, "America/New_York"),
+            //   fromZonedTime(date, "America/New_York"),
+            //   serverDate,
+            //   toZonedTime(serverDate, "America/New_York"),
+            //   fromZonedTime(serverDate, "America/New_York")
+            // );
+            return "highlight-today";
+          }
+          return null;
+        }}
+      />
+      <p>Selected Date: {selectedDate.toDateString()}</p>
 
       {/* Modal */}
       {isModalOpen && selectedDate && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            {prompt !== undefined ? <h1>{prompt}</h1> : <h1>Nobody Winner <AiTwotoneFrown /></h1>}
+            {prompt !== undefined ? (
+              <h1>{prompt}</h1>
+            ) : (
+              <h1>
+                Nobody Winner <AiTwotoneFrown />
+              </h1>
+            )}
             <div className="image-container">
               <div className="image-wrapper">
                 {winnerImage !== undefined ? (

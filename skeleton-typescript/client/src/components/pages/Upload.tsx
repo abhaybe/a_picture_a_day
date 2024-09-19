@@ -3,7 +3,6 @@ import "./Upload.css";
 import { useNavigate } from "react-router-dom";
 import CountdownTimer from "./Countdown";
 
-
 const Upload = ({ changeUploaded, userId }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [prompt, setPrompt] = useState<string | null>(null);
@@ -17,7 +16,7 @@ const Upload = ({ changeUploaded, userId }) => {
     } catch (error) {
       console.error("Failed to fetch prompt:", error);
     }
-  }
+  };
 
   useEffect(() => {
     fetchPrompt();
@@ -39,7 +38,6 @@ const Upload = ({ changeUploaded, userId }) => {
         });
 
         const result = await res.json();
-        console.log(result);
         changeUploaded(true);
         navigate("/vote");
       } catch (error) {
@@ -50,7 +48,7 @@ const Upload = ({ changeUploaded, userId }) => {
 
   return (
     <div className="upload">
-        <CountdownTimer/>
+      <CountdownTimer />
       <div className="prompt-box">
         <h1>PROMPT: {prompt || "Loading ..."}</h1>
       </div>

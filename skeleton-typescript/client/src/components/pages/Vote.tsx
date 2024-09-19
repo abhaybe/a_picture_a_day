@@ -3,11 +3,11 @@ import "./Vote.css";
 import ImageList from "./ImageList";
 import CountdownTimer from "./Countdown";
 import { get, post } from "../../utilities";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
+import { set } from "date-fns";
 
 // Define how many images a user can vote for
 const MAX_VOTES = 1;
-
-
 
 const Vote: React.FC = () => {
   const [imagestwo, setImages] = useState<{ id: number; url: string; name: string }[]>([]);
@@ -22,7 +22,7 @@ const Vote: React.FC = () => {
     } catch (error) {
       console.error("Failed to fetch prompt:", error);
     }
-  }
+  };
 
   useEffect(() => {
     fetchPrompt();
@@ -31,28 +31,38 @@ const Vote: React.FC = () => {
 
   useEffect(() => {
     const loadImages = async () => {
-      const curDate = new Date().toISOString();
-      const response = await fetch("/api/get-images?date=" + curDate);
-      const result = await response.json();
-      const imagest = result.imagesWithSignedUrl;
-      imagest.forEach((image) => {
-        images = [...images, { id: image._id, url: image.signedUrl, name: image.name }];
-      });
-      return images;
+      let curDate = fromZonedTime(
+        set(new Date(), {
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+          milliseconds: 0,
+        }),
+        "America/New_York"
+      );
+
+      // const response = await fetch("/api/get-images?date=" + curDate);
+      get("/api/get-images", { date: curDate })
+        .then((result) => {
+          const imagest = result.imagesWithSignedUrl;
+          imagest.forEach((image) => {
+            images = [...images, { id: image._id, url: image.signedUrl, name: image.name }];
+          });
+          return images;
+        })
+        .then((images) => {
+          setImages(images);
+        })
+        .then(() => get("/api/userinfo"))
+        .then((info) => {
+          setVotes(info.votingFor === null ? [] : [info.votingFor]);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch images:", error);
+        });
     };
 
-    loadImages()
-      .then((images) => {
-        setImages(images);
-      })
-      .then(() => get("/api/userinfo"))
-      .then((info) => {
-        setVotes(info.votingFor === null ? [] : [info.votingFor]);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch images:", error);
-      });
-
+    loadImages();
   }, []);
 
   // const handleVote = (imageId: number) => {
@@ -73,7 +83,7 @@ const Vote: React.FC = () => {
 
   return (
     <div className="app">
-      <CountdownTimer/>
+      <CountdownTimer />
       <h1 className="title">Vote for the best one!</h1>
 
       <div className="prompt-box">

@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
+import { set } from "date-fns";
 
 const CountdownTimer: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState<string>("");
@@ -6,10 +8,15 @@ const CountdownTimer: React.FC = () => {
   useEffect(() => {
     const calculateTimeLeft = () => {
       const now = new Date();
-      const nextMidnight = new Date();
-
-      nextMidnight.setHours(24, 0, 0, 0);
-
+      const nextMidnight = fromZonedTime(
+        set(new Date(), {
+          hours: 23,
+          minutes: 59,
+          seconds: 59,
+          milliseconds: 999,
+        }),
+        "America/New_York"
+      );
       const difference = nextMidnight.getTime() - now.getTime();
 
       const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
@@ -17,7 +24,7 @@ const CountdownTimer: React.FC = () => {
       const seconds = Math.floor((difference / 1000) % 60);
 
       setTimeLeft(
-        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+        `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
       );
     };
 
