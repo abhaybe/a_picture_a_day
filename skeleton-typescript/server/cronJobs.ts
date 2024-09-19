@@ -71,7 +71,7 @@ async function resetUsers() {
 }
 
 function resetDay() {
-    cron.schedule('*/1 * * * *', async () => {
+    cron.schedule('0 0 * * *', async () => {
         await getWinner();
 
         try {
