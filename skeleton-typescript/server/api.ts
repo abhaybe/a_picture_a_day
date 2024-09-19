@@ -308,8 +308,8 @@ router.get("/get-image", async (req, res) => {
       return res.status(400).send("Invalid date.");
     }
 
-    const start = startOfDay(toZonedTime(date, "America/New_York"));
-    const end = endOfDay(toZonedTime(date, "America/New_York"));
+    const start = toZonedTime(startOfDay(date), "America/New_York");
+    const end = toZonedTime(endOfDay(date), "America/New_York");
 
     const images = await ImageModel.find({
       uploadedBy: userId,
@@ -356,8 +356,8 @@ router.get("/get-images", async (req, res) => {
       return res.status(400).send("Invalid date.");
     }
 
-    const start = startOfDay(toZonedTime(date, "America/New_York"));
-    const end = endOfDay(toZonedTime(date, "America/New_York"));
+    const start = toZonedTime(startOfDay(date), "America/New_York");
+    const end = toZonedTime(endOfDay(date), "America/New_York");
 
     const images = await ImageModel.find({
       uploadedAt: {
