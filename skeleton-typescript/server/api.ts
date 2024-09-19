@@ -8,6 +8,7 @@ import ImageModel from "./models/Image";
 import UserModel from "./models/User";
 import WinnerModel from "./models/Winner";
 import { startOfDay, endOfDay } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 dotenv.config({});
 
 const router = express.Router();
@@ -307,8 +308,8 @@ router.get("/get-image", async (req, res) => {
       return res.status(400).send("Invalid date.");
     }
 
-    const start = startOfDay(date);
-    const end = endOfDay(date);
+    const start = startOfDay(toZonedTime(date, "America/New_York"));
+    const end = endOfDay(toZonedTime(date, "America/New_York"));
 
     const images = await ImageModel.find({
       uploadedBy: userId,
@@ -355,8 +356,8 @@ router.get("/get-images", async (req, res) => {
       return res.status(400).send("Invalid date.");
     }
 
-    const start = startOfDay(date);
-    const end = endOfDay(date);
+    const start = startOfDay(toZonedTime(date, "America/New_York"));
+    const end = endOfDay(toZonedTime(date, "America/New_York"));
 
     const images = await ImageModel.find({
       uploadedAt: {

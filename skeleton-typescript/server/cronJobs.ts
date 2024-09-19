@@ -82,6 +82,9 @@ function resetDay() {
         }
 
         await resetUsers();
+    },{
+        scheduled: true,
+        timezone: "America/New_York"
     });
 }
 
